@@ -3,7 +3,9 @@ package universalDiscord.notifiers;
 import lombok.extern.slf4j.Slf4j;
 import universalDiscord.UniversalDiscordPlugin;
 import universalDiscord.Utils;
+import universalDiscord.enums.SkillThumbnail;
 import universalDiscord.message.MessageBuilder;
+import universalDiscord.message.discord.Image;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
@@ -26,9 +28,12 @@ public class LevelNotifier extends BaseNotifier {
     public void handleNotify() {
         StringBuilder skillMessage = new StringBuilder();
         int index = 0;
+        SkillThumbnail skillThumb = SkillThumbnail.OVERALL;
 
         for (String skill : levelledSkills) {
+            skillThumb = SkillThumbnail.valueOf(skill.toUpperCase());
             if (index == levelledSkills.size()) {
+                skillThumb = SkillThumbnail.OVERALL;
                 skillMessage.append(" and ");
             } else if (index > 0) {
                 skillMessage.append(", ");
@@ -43,6 +48,8 @@ public class LevelNotifier extends BaseNotifier {
                 .replaceAll("%SKILL%", skillString);
 
         MessageBuilder messageBuilder = MessageBuilder.textAsEmbed(fullNotification, plugin.config.levelSendImage());
+        SkillThumbnail finalSkillThumb = skillThumb;
+        messageBuilder.setFirstThumbnail(new Image(finalSkillThumb.getThumbnailUrl()));
         plugin.messageHandler.sendMessage(messageBuilder);
 
         reset();
@@ -55,7 +62,7 @@ public class LevelNotifier extends BaseNotifier {
 
     @Override
     public boolean isEnabled() {
-        return plugin.config.notifyLevel();
+        return plugin.config.notifyLevel() && !Utils.isQuestSpeedRunningWorld();
     }
 
     public void reset() {
@@ -84,7 +91,7 @@ public class LevelNotifier extends BaseNotifier {
     }
 
     public void handleLevelUp(String skill, int level) {
-        if (isEnabled() && !plugin.isSpeedrunWorld() && checkLevelInterval(level) && currentLevels.get(skill) != null) {
+        if (isEnabled() && checkLevelInterval(level) && currentLevels.get(skill) != null) {
             if (level == currentLevels.get(skill)) {
                 return;
             }

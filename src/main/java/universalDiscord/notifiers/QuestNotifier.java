@@ -8,6 +8,7 @@ import net.runelite.api.widgets.WidgetInfo;
 import universalDiscord.UniversalDiscordPlugin;
 import universalDiscord.Utils;
 import universalDiscord.message.MessageBuilder;
+import universalDiscord.message.discord.Image;
 import universalDiscord.notifiers.onevent.WidgetLoadHandler;
 
 import java.util.regex.Matcher;
@@ -30,11 +31,12 @@ public class QuestNotifier extends BaseNotifier implements WidgetLoadHandler {
     }
 
     public void handleNotify() {
-        if (plugin.isSpeedrunWorld()) return;
         String notifyMessage = Utils.replaceCommonPlaceholders(plugin.config.questNotifyMessage())
                 .replaceAll("%QUEST%", Utils.asMarkdownWikiUrl(parseQuestWidget(lastQuestText)));
 
-        plugin.messageHandler.sendMessage(MessageBuilder.textAsEmbed(notifyMessage, plugin.config.questSendImage()));
+        MessageBuilder messageBuilder = MessageBuilder.textAsEmbed(notifyMessage, plugin.config.questSendImage());
+        messageBuilder.setFirstThumbnail(new Image("https://oldschool.runescape.wiki/images/Quests.png"));
+        plugin.messageHandler.sendMessage(messageBuilder);
 
         reset();
     }
@@ -89,7 +91,7 @@ public class QuestNotifier extends BaseNotifier implements WidgetLoadHandler {
 
     @Override
     public boolean isEnabled() {
-        return plugin.config.notifyQuest();
+        return plugin.config.notifyQuest() && !Utils.isQuestSpeedRunningWorld();
     }
 
     private void reset() {
